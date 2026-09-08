@@ -1,83 +1,39 @@
-# Catalog Item Availability Endpoint
+# Basket Item Quantity Validation
 
-## context
-The eShop Catalog service manages product listings for the AdventureWorks store.
-Each catalog item already tracks an AvailableStock integer field in the database.
-Currently consumers must fetch the full item detail payload to determine stock status.
-This creates unnecessary data transfer when only availability information is needed.
-A lightweight dedicated endpoint is required to solve this.
+## Behaviour
+Quantity for any basket item must be validated before being accepted.
+Quantity must be greater than 0.
+Quantity must not exceed 100.
+If validation fails the API must reject the request with an appropriate error response and message.
+Valid requests must continue to work exactly as before.
+Do not introduce a new validation library.
+Use existing error handling patterns already present in the service.
+The validation must happen server-side.
 
-## behaviorFunctional
-The endpoint must accept a single catalog item ID as a route parameter.
-The endpoint must return whether the item is currently available for purchase.
-The endpoint must return the current stock quantity of the item.
-An item is considered available when its AvailableStock is greater than zero.
-An item is considered unavailable when its AvailableStock is zero or less.
-If the requested item ID does not exist the endpoint must return a not-found response.
-The endpoint must be read-only and must not modify any data.
-The endpoint must reuse existing data access patterns already present in Catalog.API.
-The endpoint must follow the URL structure and response conventions of existing Catalog.API endpoints.
-The stock quantity returned must reflect the current value stored in the database.
-No new database columns or model fields are required for this feature.
+## Acceptance Criteria
+Given a basket update request is submitted
+When quantity is 0
+Then the API returns a 400 response with a human-readable error message
+Given a basket update request is submitted
+When quantity is 101
+Then the API returns a 400 response with a human-readable error message
+Given a basket update request is submitted
+When quantity is 1
+Then the request succeeds and the basket is updated normally
+Given a basket update request is submitted
+When quantity is 100
+Then the request succeeds and the basket is updated normally
+Given a basket update request is submitted
+When quantity is 50
+Then the request succeeds and the basket is updated normally
 
-## constraints
-Do not duplicate data access logic — reuse existing repository or context patterns.
-Do not modify the existing CatalogItem model.
-Do not alter any existing catalog endpoints.
-Do not introduce any new dependencies or packages.
-The endpoint must be registered consistently with how other Catalog.API endpoints are registered.
-Response field names must follow the camelCase convention used in existing API responses.
-
-## outOfScope
-Reserving or locking stock is out of scope.
-Real-time stock updates or webhooks are out of scope.
-Availability logic based on anything other than AvailableStock is out of scope.
-Authentication or authorization on this endpoint is out of scope.
-
-## testCases
-Given a GET request to the availability endpoint
-When the item ID exists and AvailableStock is greater than 0
-Then the response is 200
-And available is true
-And stock equals the current AvailableStock value
-
-Given a GET request to the availability endpoint
-When the item ID exists and AvailableStock is exactly 0
-Then the response is 200
-And available is false
-And stock is 0
-
-Given a GET request to the availability endpoint
-When the item ID does not exist in the database
-Then the response is 404
-
-Given a GET request to the availability endpoint
-When the item ID exists and AvailableStock is 1
-Then the response is 200
-And available is true
-And stock is 1
-
-Given existing catalog endpoints such as GET /api/catalog/items
-When the availability endpoint is added
-Then all existing endpoints continue to return correct responses
-
-Given the availability endpoint is called
-When the response is returned
-Then the response shape is exactly { "available": true/false, "stock": integer }
-And no additional fields are included
-
-## definitionOfDone
-A new read-only endpoint exists that accepts a catalog item ID.
-GET request with a valid item ID returns 200 with available and stock fields.
-GET request with an unknown item ID returns 404.
-available is true when AvailableStock is greater than 0.
-available is false when AvailableStock is 0.
-stock reflects the exact AvailableStock value from the database.
-Response shape is { "available": bool, "stock": int }.
-No existing catalog endpoints are broken.
-No data access logic is duplicated.
-No new packages or dependencies are introduced.
-The endpoint is registered using the same pattern as existing Catalog.API endpoints.
+## Success Criteria
+Sending quantity 0 returns a 400 response.
+Sending quantity 101 returns a 400 response.
+Sending quantity 1 and quantity 100 succeed normally.
+Error response includes a human-readable message describing the constraint.
+No new validation library is introduced.
+Validation occurs server-side using existing error handling patterns.
 
 ## asIs
 src/Basket.API/Model/BasketItem.cs:1
