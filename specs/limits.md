@@ -80,8 +80,6 @@ No new packages or dependencies are introduced.
 The endpoint is registered using the same pattern as existing Catalog.API endpoints.
 
 ## asIs
-src/Catalog.API/Apis/CatalogApi.cs:1
-src/Catalog.API/Model/CatalogItem.cs:1
-src/Catalog.API/Infrastructure/CatalogContext.cs:1
-src/Catalog.API/Services/CatalogServices.cs:1
-src/Catalog.API/Program.cs:1
+src/Basket.API/Model/BasketItem.cs:1
+src/Basket.API/Grpc/BasketService.cs:1
+src/Basket.API/Repositories/RedisBasketRepository.cs:1
